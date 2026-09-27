@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HirePulse - Job Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Header / Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-2 text-2xl font-bold text-indigo-600">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>HirePulse</span>
+      </div>
+
+      <!-- Role Switcher Tabs -->
+      <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+        <button id="candidateTabBtn" onclick="switchView('candidate')" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-white text-indigo-600 shadow-sm">
+          Candidate
+        </button>
+        <button id="employerTabBtn" onclick="switchView('employer')" class="px-4 py-1.5 rounded-lg text-sm font-semibold text-slate-600 transition">
+          Employer Dashboard
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CANDIDATE VIEW -->
+  <div id="candidateView" class="flex-1 flex flex-col">
+    <!-- Hero Header -->
+    <section class="bg-indigo-900 text-white py-14 px-6 text-center">
+      <h1 class="text-3xl sm:text-5xl font-extrabold mb-3">Find Your Dream Career Today</h1>
+      <p class="text-indigo-200 text-sm sm:text-base mb-8 max-w-xl mx-auto">Discover thousands of job opportunities with top companies around the globe.</p>
+
+      <!-- Search Bar -->
+      <div class="max-w-3xl mx-auto bg-white p-2.5 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2 text-slate-800">
+        <div class="flex-1 flex items-center px-3 gap-2 border-b sm:border-b-0 sm:border-r border-slate-200 py-2 sm:py-0">
+          <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+          <input type="text" id="titleSearch" placeholder="Job title or keywords..." class="w-full text-sm outline-none">
+        </div>
+        <div class="flex-1 flex items-center px-3 gap-2 py-2 sm:py-0">
+          <i class="fa-solid fa-location-dot text-slate-400"></i>
+          <input type="text" id="locationSearch" placeholder="Location or Remote..." class="w-full text-sm outline-none">
+        </div>
+        <button onclick="filterJobs()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition">
+          Search
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl w-full mx-auto px-6 py-10 flex-1">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-slate-900">Featured Opportunities</h2>
+        <span id="jobCount" class="text-sm text-slate-500 font-medium">Showing all jobs</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="jobGrid">
+        <!-- Rendered via JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- EMPLOYER DASHBOARD VIEW -->
+  <div id="employerView" class="hidden flex-1 max-w-7xl w-full mx-auto px-6 py-10">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Employer Management Dashboard</h1>
+        <p class="text-slate-500 text-sm">Post new job openings and manage current listings.</p>
+      </div>
+      <button onclick="togglePostJobModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-plus"></i> Post New Job
+      </button>
+    </div>
+
+    <!-- Employer Job Table -->
+    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase border-b border-slate-200">
+            <th class="p-4">Job Title</th>
+            <th class="p-4">Company</th>
+            <th class="p-4">Type</th>
+            <th class="p-4">Location</th>
+            <th class="p-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="employerJobTable" class="divide-y divide-slate-100 text-sm">
+          <!-- Rendered via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Apply Job Modal -->
+  <div id="applyModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white max-w-md w-full rounded-2xl p-6 relative shadow-2xl">
+      <button onclick="toggleApplyModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-xl font-bold text-slate-900 mb-1" id="applyJobTitle">Apply for Position</h3>
+      <p class="text-slate-500 text-xs mb-4" id="applyJobCompany">Company Name</p>
+
+      <form onsubmit="handleApplySubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+          <input type="text" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input type="email" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Resume / Cover Note</label>
+          <textarea rows="3" required placeholder="Briefly mention why you are a good fit..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+          Submit Application
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Post Job Modal -->
+  <div id="postJobModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white max-w-lg w-full rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="togglePostJobModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-xl font-bold text-slate-900 mb-4">Post a New Job Opportunity</h3>
+
+      <form onsubmit="handlePostJobSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Job Title</label>
+          <input type="text" id="postTitle" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Company</label>
+            <input type="text" id="postCompany" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Job Type</label>
+            <select id="postType" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Internship">Internship</option>
+              <option value="Contract">Contract</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Location</label>
+            <input type="text" id="postLocation" required placeholder="e.g. Remote / Karachi" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Salary Range</label>
+            <input type="text" id="postSalary" required placeholder="e.g. $60k - $80k" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+          <textarea id="postDesc" rows="3" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+          Post Job Now
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+    <p>&copy; 2026 HirePulse Job Portal. Phase 1 Internship Submission.</p>
+  </footer>
+
+  <script>
+    let jobs = [
+      {
+        id: 1,
+        title: "Frontend Developer (React)",
+        company: "TechLogix",
+        type: "Full-time",
+        location: "Remote",
+        salary: "$70,000 - $90,000",
+        description: "Looking for an experienced React frontend engineer to craft modern, user-friendly UI components."
+      },
+      {
+        id: 2,
+        title: "UI/UX Designer",
+        company: "Creative Studio",
+        type: "Part-time",
+        location: "Karachi, PK",
+        salary: "$40,000 - $55,000",
+        description: "Design clean web layouts, prototype components, and establish branding guidelines."
+      },
+      {
+        id: 3,
+        title: "Software Engineering Intern",
+        company: "Sqrock IT Solutions",
+        type: "Internship",
+        location: "Remote",
+        salary: "Stipend",
+        description: "Hands-on internship working with Web technologies, APIs, and modern development frameworks."
+      }
+    ];
+
+    const jobGrid = document.getElementById("jobGrid");
+    const employerJobTable = document.getElementById("employerJobTable");
+
+    function renderJobs(filteredJobs = jobs) {
+      document.getElementById("jobCount").innerText = `Showing ${filteredJobs.length} job(s)`;
+      
+      jobGrid.innerHTML = filteredJobs.map(j => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-3">
+              <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2.5 py-1 rounded-md border border-indigo-100">${j.type}</span>
+              <span class="text-xs font-semibold text-slate-500">${j.salary}</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">${j.title}</h3>
+            <p class="text-sm font-medium text-slate-600 mb-3"><i class="fa-regular fa-building"></i> ${j.company} • <i class="fa-solid fa-location-dot"></i> ${j.location}</p>
+            <p class="text-xs text-slate-500 line-clamp-3 mb-6 leading-relaxed">${j.description}</p>
+          </div>
+          <button onclick="openApplyModal('${j.title}', '${j.company}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+            Apply Now
+          </button>
+        </div>
+      `).join('');
+
+      employerJobTable.innerHTML = jobs.map(j => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-semibold text-slate-800">${j.title}</td>
+          <td class="p-4 text-slate-600">${j.company}</td>
+          <td class="p-4"><span class="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded">${j.type}</span></td>
+          <td class="p-4 text-slate-600">${j.location}</td>
+          <td class="p-4">
+            <button onclick="deleteJob(${j.id})" class="text-red-500 hover:text-red-700 font-medium text-xs">
+              <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterJobs() {
+      const title = document.getElementById("titleSearch").value.toLowerCase();
+      const loc = document.getElementById("locationSearch").value.toLowerCase();
+
+      const res = jobs.filter(j => 
+        j.title.toLowerCase().includes(title) &&
+        j.location.toLowerCase().includes(loc)
+      );
+      renderJobs(res);
+    }
+
+    function switchView(view) {
+      const candidateView = document.getElementById("candidateView");
+      const employerView = document.getElementById("employerView");
+      const candidateBtn = document.getElementById("candidateTabBtn");
+      const employerBtn = document.getElementById("employerTabBtn");
+
+      if (view === "candidate") {
+        candidateView.classList.remove("hidden");
+        employerView.classList.add("hidden");
+        candidateBtn.className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-white text-indigo-600 shadow-sm";
+        employerBtn.className = "px-4 py-1.5 rounded-lg text-sm font-semibold text-slate-600 transition";
+      } else {
+        candidateView.classList.add("hidden");
+        employerView.classList.remove("hidden");
+        employerBtn.className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-white text-indigo-600 shadow-sm";
+        candidateBtn.className = "px-4 py-1.5 rounded-lg text-sm font-semibold text-slate-600 transition";
+      }
+    }
+
+    function openApplyModal(title, company) {
+      document.getElementById("applyJobTitle").innerText = title;
+      document.getElementById("applyJobCompany").innerText = company;
+      toggleApplyModal(true);
+    }
+
+    function toggleApplyModal(show) {
+      document.getElementById("applyModal").classList.toggle("hidden", !show);
+    }
+
+    function togglePostJobModal(show) {
+      document.getElementById("postJobModal").classList.toggle("hidden", !show);
+    }
+
+    function handleApplySubmit(e) {
+      e.preventDefault();
+      alert("Application submitted successfully!");
+      toggleApplyModal(false);
+    }
+
+    function handlePostJobSubmit(e) {
+      e.preventDefault();
+      const newJob = {
+        id: Date.now(),
+        title: document.getElementById("postTitle").value,
+        company: document.getElementById("postCompany").value,
+        type: document.getElementById("postType").value,
+        location: document.getElementById("postLocation").value,
+        salary: document.getElementById("postSalary").value,
+        description: document.getElementById("postDesc").value
+      };
+      jobs.unshift(newJob);
+      renderJobs();
+      togglePostJobModal(false);
+      e.target.reset();
+    }
+
+    function deleteJob(id) {
+      if (confirm("Are you sure you want to delete this job listing?")) {
+        jobs = jobs.filter(j => j.id !== id);
+        renderJobs();
+      }
+    }
+
+    renderJobs();
+  </script>
+</body>
+</html>
